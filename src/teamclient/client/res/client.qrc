@@ -8,13 +8,13 @@
     <file>ico/download.png</file>
     <file>ico/screenshot.png</file>
     <file>ico/disk.png</file>
-    <file>ico/console.ico</file>
+    <file>ico/console.png</file>
     <file>ico/dir.png</file>
     <file>ico/file.png</file>
     <file>ico/icon_list.png</file>
     <file>ico/icon_plus.png</file>
     <file>ico/set.png</file>
-    <file>ico/github.ico</file>
+    <file>ico/github.png</file>
   </qresource>
   <qresource prefix="beacon">
     <file>Linux/beacon.x64</file>
