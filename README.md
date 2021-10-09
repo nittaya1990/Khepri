@@ -9,7 +9,7 @@
 <h5 align="center">Free,Open-Source,Cross-platform agent and Post-exploiton tool written in Golang and C++</h5>
 
 
-![platform](https://img.shields.io/badge/platform-cross-important?color=%23189000) ![Langue](https://img.shields.io/badge/language-golang/c++-orange.svg) [![stars](https://img.shields.io/github/stars/geemion/khepri)](https://github.com/geemion/Khepri/stargazers)
+![platform](https://img.shields.io/badge/platform-cross-important?color=%23189000) ![Langue](https://img.shields.io/badge/language-golang/c++-orange.svg) [![stars](https://img.shields.io/github/stars/geemion/khepri)](https://github.com/geemion/Khepri/stargazers) [![GoReportCard](https://goreportcard.com/badge/github.com/geemion/Khepri)](https://goreportcard.com/report/github.com/geemion/Khepri)
 
 ### Description
  
@@ -73,3 +73,7 @@ Please see [Quick Start](docs/quick_start.md)
 ### Contributing
 * Issues and PR are welcome.
 * [Khepri contributing format](docs/contributing.md).
+
+### Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/geemion/Khepri.svg)](https://starchart.cc/geemion/Khepri)
