@@ -70,7 +70,7 @@ func (cs *beaconServer) Run() (err error) {
 	return gnet.Serve(cs, cs.addr, gnet.WithMulticore(cs.multicore), gnet.WithTCPKeepAlive(time.Minute*5), gnet.WithCodec(cs.codec))
 }
 
-func NewBeaconServer(addr string, multicore, async bool, codec gnet.ICodec, msghandler *handler.MsgHandler) (cs *beaconServer) {
+func newBeaconServer(addr string, multicore, async bool, codec gnet.ICodec, msghandler *handler.MsgHandler) (cs *beaconServer) {
 	if codec == nil {
 		encoderConfig := gnet.EncoderConfig{
 			ByteOrder:                       binary.BigEndian,

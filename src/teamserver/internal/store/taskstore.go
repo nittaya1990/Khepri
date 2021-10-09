@@ -91,7 +91,7 @@ func UpdateTask(taskid uint64, rspparam []byte) (err error) {
 	}).Error
 }
 
-func GetTaskRspData(msgid int32)(rspDatas []TaskStore, err error){
+func GetTaskRspData(msgid int32) (rspDatas []TaskStore, err error) {
 
 	db := Instance()
 	query := db.Where("msg_id = ? and status = ?", msgid, Status_Done).Find(&rspDatas)

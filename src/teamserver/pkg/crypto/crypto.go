@@ -25,13 +25,15 @@ import (
 	"golang.org/x/crypto/chacha20"
 )
 
+//RsaEncode is a struct to save communication rsa key info
 type RsaEncode struct {
-	PubKey     *rsa.PublicKey
-	PrivateKey *rsa.PrivateKey
-	N          string
-	E          string
+	PubKey     *rsa.PublicKey  //public key info
+	PrivateKey *rsa.PrivateKey //private key info
+	N          string          //public key N
+	E          string          //public key E
 }
 
+//New instance a rsa encrypt object
 func NewRsaEncode(pubKey, privateKey []byte) (encode *RsaEncode, err error) {
 	pubBlock, _ := pem.Decode(pubKey)
 	if pubBlock == nil {
@@ -68,14 +70,17 @@ func NewRsaEncode(pubKey, privateKey []byte) (encode *RsaEncode, err error) {
 	return encode, nil
 }
 
+//Rsa public encrypt
 func (r *RsaEncode) PubEncode(data []byte) ([]byte, error) {
 	return rsa.EncryptPKCS1v15(rand.Reader, r.PubKey, data)
 }
 
+//Rsa private decrypt
 func (r *RsaEncode) PrivateDecode(ciphertext []byte) ([]byte, error) {
 	return rsa.DecryptPKCS1v15(rand.Reader, r.PrivateKey, ciphertext)
 }
 
+//XChacha20 encrypt and decrypt
 func Xchacha20(key []byte, data []byte) (dst []byte, err error) {
 	cipher, err := chacha20.NewUnauthenticatedCipher(key[:chacha20.KeySize], key[chacha20.KeySize:])
 	if err != nil {

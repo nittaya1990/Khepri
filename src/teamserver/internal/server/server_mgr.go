@@ -26,16 +26,18 @@ import (
 	pb "teamserver/internal/proto/protobuf"
 )
 
+//ServerMgr is a struct to save servers info, it's a map
 type ServerMgr struct {
-	serverInfo sync.Map
+	serverInfo sync.Map //key is a server name, value is server addr
 }
 
+//start a server
 func (s *ServerMgr) StartServer(name string, addr string, msghandler *handler.MsgHandler) (err error) {
 	if s.isRunningServer(name) {
 		return errors.New("Duplicate listener name")
 	}
 	go func() {
-		server := NewBeaconServer(addr, false, false, nil, msghandler)
+		server := newBeaconServer(addr, false, false, nil, msghandler)
 		err = server.Run()
 		if err != nil {
 			log.Print(err)
@@ -47,6 +49,7 @@ func (s *ServerMgr) StartServer(name string, addr string, msghandler *handler.Ms
 	return nil
 }
 
+//stop server
 func (s *ServerMgr) StopServer(name string) (err error) {
 	addr, ok := s.serverInfo.Load(name)
 	if !ok {

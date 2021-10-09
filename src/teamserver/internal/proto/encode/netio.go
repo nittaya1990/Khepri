@@ -19,24 +19,25 @@ const (
 	DefaultHeadLength = 17
 )
 
+//NetioData is a communication head struct between beacon and teamserver
 type NetioData struct {
-	Size      uint32
-	Encrypted bool
-	SessionId uint64
-	Reserved1 int32
-	Data      []byte
+	Size      uint32 //data size not contain NetioData size
+	Encrypted bool   //encrypt flag
+	SessionId uint64 //session id
+	Reserved1 int32  //reserved, now this is a random int
+	Data      []byte //data
 }
 
 type INetioData interface {
-	GetDataLen() uint32
+	getDataLen() uint32
 	IsEncrypted() bool
 	GetData() []byte
 	GetSessionId() uint64
 
-	SetDataLen(uint32)
-	SetEncrypted(bool)
-	SetData([]byte)
-	SetSessionId(uint64)
+	setDataLen(uint32)
+	setEncrypted(bool)
+	setData([]byte)
+	setSessionId(uint64)
 }
 
 func NewNetioData(encrypted bool, sessionid uint64, data []byte) *NetioData {
@@ -48,7 +49,7 @@ func NewNetioData(encrypted bool, sessionid uint64, data []byte) *NetioData {
 	}
 }
 
-func (msg *NetioData) GetDataLen() uint32 {
+func (msg *NetioData) getDataLen() uint32 {
 	return msg.Size
 }
 
@@ -64,18 +65,18 @@ func (msg *NetioData) GetData() []byte {
 	return msg.Data
 }
 
-func (msg *NetioData) SetDataLen(len uint32) {
+func (msg *NetioData) setDataLen(len uint32) {
 	msg.Size = len
 }
 
-func (msg *NetioData) SetEncrypted(encrypted bool) {
+func (msg *NetioData) setEncrypted(encrypted bool) {
 	msg.Encrypted = encrypted
 }
 
-func (msg *NetioData) SetSessionId(sessionid uint64) {
+func (msg *NetioData) setSessionId(sessionid uint64) {
 	msg.SessionId = sessionid
 }
 
-func (msg *NetioData) SetData(data []byte) {
+func (msg *NetioData) setData(data []byte) {
 	msg.Data = data
 }

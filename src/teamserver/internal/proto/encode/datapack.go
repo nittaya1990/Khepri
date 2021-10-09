@@ -21,28 +21,25 @@ import (
 	pb "teamserver/internal/proto/protobuf"
 )
 
-type IDataPack interface {
-	GetHeadLen() uint32
-	Pack(msg NetioData) ([]byte, error)
-	Unpack([]byte) (NetioData, error)
+type dataPack struct{}
+
+//new instance data pack and unpack object
+func NewDataPack() *dataPack {
+	return &dataPack{}
 }
 
-type DataPack struct{}
-
-func NewDataPack() *DataPack {
-	return &DataPack{}
-}
-
-func (dp *DataPack) GetHeadLen() uint32 {
+//GetHeadLen return data head len
+func (dp *dataPack) GetHeadLen() uint32 {
 	return DefaultHeadLength
 }
 
-func (dp *DataPack) Pack(msg INetioData, conntype pb.CONN_TYPE) ([]byte, error) {
+//Pack data into byte
+func (dp *dataPack) Pack(msg INetioData, conntype pb.CONN_TYPE) ([]byte, error) {
 
 	dataBuff := bytes.NewBuffer([]byte{})
 
 	if conntype == pb.CONN_TYPE_CONNNAME_UDP {
-		if err := binary.Write(dataBuff, binary.BigEndian, msg.GetDataLen()); err != nil {
+		if err := binary.Write(dataBuff, binary.BigEndian, msg.getDataLen()); err != nil {
 			return nil, err
 		}
 	}
@@ -67,7 +64,8 @@ func (dp *DataPack) Pack(msg INetioData, conntype pb.CONN_TYPE) ([]byte, error) 
 	return dataBuff.Bytes(), nil
 }
 
-func (dp *DataPack) Unpack(binaryData []byte) (INetioData, error) {
+//unpack data from byte
+func (dp *dataPack) Unpack(binaryData []byte) (INetioData, error) {
 
 	dataBuff := bytes.NewReader(binaryData)
 	msg := &NetioData{}
