@@ -35,7 +35,7 @@ func main() {
 
 	client := pb.NewTeamRPCServiceClient(conn)
 
-	err = SetServerCmd(client, &pb.ServerCmdReq{
+	err = setServerCmd(client, &pb.ServerCmdReq{
 		Token:     "",
 		CmdId:     int32(pb.CMDID_GET_BEACONS_REQ),
 		ByteValue: nil,
@@ -49,7 +49,7 @@ func main() {
 
 }
 
-func SetServerCmd(client pb.TeamRPCServiceClient, r *pb.ServerCmdReq) (err error) {
+func setServerCmd(client pb.TeamRPCServiceClient, r *pb.ServerCmdReq) (err error) {
 
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Duration(15*time.Second)))
 	defer cancel()

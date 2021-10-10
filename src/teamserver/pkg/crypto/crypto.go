@@ -33,7 +33,7 @@ type RsaEncode struct {
 	E          string          //public key E
 }
 
-//New instance a rsa encrypt object
+//NewRsaEncode return a rsa encrypt object
 func NewRsaEncode(pubKey, privateKey []byte) (encode *RsaEncode, err error) {
 	pubBlock, _ := pem.Decode(pubKey)
 	if pubBlock == nil {
@@ -70,17 +70,17 @@ func NewRsaEncode(pubKey, privateKey []byte) (encode *RsaEncode, err error) {
 	return encode, nil
 }
 
-//Rsa public encrypt
+//PubEncode is rsa public encrypt function
 func (r *RsaEncode) PubEncode(data []byte) ([]byte, error) {
 	return rsa.EncryptPKCS1v15(rand.Reader, r.PubKey, data)
 }
 
-//Rsa private decrypt
+//PrivateDecode is rsa private decrypt function
 func (r *RsaEncode) PrivateDecode(ciphertext []byte) ([]byte, error) {
 	return rsa.DecryptPKCS1v15(rand.Reader, r.PrivateKey, ciphertext)
 }
 
-//XChacha20 encrypt and decrypt
+//Xchacha20 is encrypt and decrypt function
 func Xchacha20(key []byte, data []byte) (dst []byte, err error) {
 	cipher, err := chacha20.NewUnauthenticatedCipher(key[:chacha20.KeySize], key[chacha20.KeySize:])
 	if err != nil {

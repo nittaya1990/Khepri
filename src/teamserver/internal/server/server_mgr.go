@@ -31,7 +31,7 @@ type ServerMgr struct {
 	serverInfo sync.Map //key is a server name, value is server addr
 }
 
-//start a server
+//StartServer is to start a server
 func (s *ServerMgr) StartServer(name string, addr string, msghandler *handler.MsgHandler) (err error) {
 	if s.isRunningServer(name) {
 		return errors.New("Duplicate listener name")
@@ -49,7 +49,7 @@ func (s *ServerMgr) StartServer(name string, addr string, msghandler *handler.Ms
 	return nil
 }
 
-//stop server
+//StopServer is to stop a server
 func (s *ServerMgr) StopServer(name string) (err error) {
 	addr, ok := s.serverInfo.Load(name)
 	if !ok {
@@ -59,6 +59,7 @@ func (s *ServerMgr) StopServer(name string) (err error) {
 	return gnet.Stop(context.TODO(), addr.(string))
 }
 
+//GetRunningServer return all running server info
 func (s *ServerMgr) GetRunningServer() (data []byte, err error) {
 	info := &pb.ServerInfo{}
 
@@ -76,11 +77,12 @@ func (s *ServerMgr) GetRunningServer() (data []byte, err error) {
 	return
 }
 
+//isRunningServer return server run status by name
 func (s *ServerMgr) isRunningServer(name string) bool {
 	running := false
 	s.serverInfo.Range(func(key, value interface{}) bool {
-		temp_name := key.(string)
-		if temp_name == name {
+		tempName := key.(string)
+		if tempName == name {
 			running = true
 			return false
 		}

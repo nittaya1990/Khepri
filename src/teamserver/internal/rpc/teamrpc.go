@@ -35,7 +35,7 @@ import (
 	"teamserver/pkg/mq"
 )
 
-type TeamRPCService struct {
+type teamRPCService struct {
 	pb.UnimplementedTeamRPCServiceServer
 	cmdQueue         *mq.Client
 	rpcClient        sync.Map
@@ -43,7 +43,8 @@ type TeamRPCService struct {
 	serverMgr        *server.ServerMgr
 }
 
-func (t *TeamRPCService) Login(ctx context.Context, req *pb.LoginUserReq) (rsp *pb.LoginUserRsp, err error) {
+//Login grpc rpc api
+func (t *teamRPCService) Login(ctx context.Context, req *pb.LoginUserReq) (rsp *pb.LoginUserRsp, err error) {
 
 	if ctx.Err() == context.Canceled {
 		return nil, errors.New("cannel")
@@ -83,8 +84,8 @@ func (t *TeamRPCService) Login(ctx context.Context, req *pb.LoginUserReq) (rsp *
 	return rsp, nil
 }
 
-//todo: send error to teamclient
-func (t *TeamRPCService) CommandChannel(channel pb.TeamRPCService_CommandChannelServer) (err error) {
+//CommandChannel grpc rpc api
+func (t *teamRPCService) CommandChannel(channel pb.TeamRPCService_CommandChannelServer) (err error) {
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 
@@ -135,7 +136,8 @@ func (t *TeamRPCService) CommandChannel(channel pb.TeamRPCService_CommandChannel
 	return nil
 }
 
-func (t *TeamRPCService) ServerCmd(ctx context.Context, req *pb.ServerCmdReq) (rsp *pb.ServerCmdRsp, err error) {
+//CommandChannel grpc rpc api
+func (t *teamRPCService) ServerCmd(ctx context.Context, req *pb.ServerCmdReq) (rsp *pb.ServerCmdRsp, err error) {
 	if ctx.Err() == context.Canceled {
 		return nil, errors.New("cannel")
 	}
@@ -243,7 +245,7 @@ func (t *TeamRPCService) ServerCmd(ctx context.Context, req *pb.ServerCmdReq) (r
 	return &pb.ServerCmdRsp{CmdId: rspCmdId, ByteValue: data}, nil
 }
 
-func (t *TeamRPCService) syncDownloadFiles() (err error) {
+func (t *teamRPCService) syncDownloadFiles() (err error) {
 
 	rspData, err := store.GetTaskRspData(int32(pb.MSGID_DOWNLOAD_FILE))
 	if err != nil {
@@ -262,7 +264,7 @@ func (t *TeamRPCService) syncDownloadFiles() (err error) {
 	return
 }
 
-func (t *TeamRPCService) isValidToken(token string) (err error) {
+func (t *teamRPCService) isValidToken(token string) (err error) {
 
 	err = errors.New("error token")
 	t.rpcClient.Range(func(key, value interface{}) bool {
@@ -276,7 +278,7 @@ func (t *TeamRPCService) isValidToken(token string) (err error) {
 	return err
 }
 
-func (t *TeamRPCService) setErrorMsg(cmdid int32, err error) (data []byte) {
+func (t *teamRPCService) setErrorMsg(cmdid int32, err error) (data []byte) {
 	errorMsg := &pb.ErrorMsg{}
 	errorMsg.Cmdid = cmdid
 	errorMsg.Error = err.Error()
@@ -284,6 +286,7 @@ func (t *TeamRPCService) setErrorMsg(cmdid int32, err error) (data []byte) {
 	return data
 }
 
+//NewTeamRpcService return a team rpc service
 func NewTeamRpcService(addr string, mqclient *mq.Client, maxSendSize int, maxRecvSize int) error {
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -299,6 +302,6 @@ func NewTeamRpcService(addr string, mqclient *mq.Client, maxSendSize int, maxRec
 	msgHandler := handler.NewMsgHandler(mqclient)
 
 	rpcServer := grpc.NewServer(options...)
-	pb.RegisterTeamRPCServiceServer(rpcServer, &TeamRPCService{cmdQueue: mqclient, beaconMsgHandler: msgHandler, serverMgr: serverMgr})
+	pb.RegisterTeamRPCServiceServer(rpcServer, &teamRPCService{cmdQueue: mqclient, beaconMsgHandler: msgHandler, serverMgr: serverMgr})
 	return rpcServer.Serve(lis)
 }

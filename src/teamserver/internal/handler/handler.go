@@ -32,17 +32,20 @@ import (
 	"time"
 )
 
+//MsgHandler represents all beacons msg handler functions
 type MsgHandler struct {
 	Sessions sync.Map
 	cmdqueue *mq.Client
 }
 
+//NewMsgHandler return a msghandler
 func NewMsgHandler(mqclient *mq.Client) *MsgHandler {
 	handler := &MsgHandler{cmdqueue: mqclient}
 	go handler.pushTask()
 	return handler
 }
 
+//HandleMsg handler beacon msg,return send data
 func (hm *MsgHandler) HandleMsg(msg []byte, c gnet.Conn, conntype pb.CONN_TYPE) (msgrsp []byte, err error) {
 
 	dp := encode.NewDataPack()
@@ -58,6 +61,7 @@ func (hm *MsgHandler) HandleMsg(msg []byte, c gnet.Conn, conntype pb.CONN_TYPE) 
 	}
 }
 
+//HandleClose handler disconnect
 func (hm *MsgHandler) HandleClose(c gnet.Conn) {
 	sessionid := c.Context().(uint64)
 	hm.Sessions.Delete(sessionid)
@@ -101,18 +105,18 @@ func (hm *MsgHandler) msgdispatch(netio encode.INetioData, conntype pb.CONN_TYPE
 	var taskrspdata []byte
 	switch pb.MSGID(task.MsgId) {
 	case pb.MSGID_HOST_INFO_RSP:
-		taskrspdata, err = hm.OnRspData(task)
+		taskrspdata, err = hm.onRspData(task)
 		break
 	case pb.MSGID_HEAT_BEAT_REQ:
 		{
-			taskrspdata, err = hm.OnQuerytask(task)
+			taskrspdata, err = hm.onQuerytask(task)
 
 			ipaddr := beacon.(*bn.Beacon).Conn.RemoteAddr()
 			hm.onUpdateBeacon(task, ipaddr.String())
 			break
 		}
 	default:
-		taskrspdata, err = hm.OnRspData(task)
+		taskrspdata, err = hm.onRspData(task)
 		break
 	}
 
@@ -167,7 +171,7 @@ func (hm *MsgHandler) onReqAuth(sessionid uint64, taskreq *pb.TaskData, c gnet.C
 }
 
 //todo: save rsp to db
-func (hm *MsgHandler) OnRspData(taskrsp *pb.TaskData) (rsp []byte, err error) {
+func (hm *MsgHandler) onRspData(taskrsp *pb.TaskData) (rsp []byte, err error) {
 	teamclientrsp := pb.CommandRsp{
 		TaskId:    taskrsp.TaskId,
 		BeaconId:  taskrsp.BeaconId,
@@ -179,7 +183,7 @@ func (hm *MsgHandler) OnRspData(taskrsp *pb.TaskData) (rsp []byte, err error) {
 }
 
 //todo:tcp push cmd
-func (hm *MsgHandler) OnQuerytask(taskrsp *pb.TaskData) (rsp []byte, err error) {
+func (hm *MsgHandler) onQuerytask(taskrsp *pb.TaskData) (rsp []byte, err error) {
 	taskdata, err := store.GetTask(taskrsp.BeaconId)
 	if err != nil {
 		return

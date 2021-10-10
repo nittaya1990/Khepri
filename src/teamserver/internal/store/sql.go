@@ -17,6 +17,7 @@ package store
 
 import (
 	"github.com/jinzhu/gorm"
+	//sqlite driver
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"log"
 	"sync"
@@ -35,7 +36,7 @@ func initDB() {
 	}
 }
 
-func Instance() *gorm.DB {
+func instance() *gorm.DB {
 	once.Do(initDB)
 	return db
 }

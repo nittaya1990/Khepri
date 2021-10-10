@@ -23,7 +23,7 @@ import (
 
 type dataPack struct{}
 
-//new instance data pack and unpack object
+//NewDataPack new a data pack and unpack object
 func NewDataPack() *dataPack {
 	return &dataPack{}
 }
@@ -78,7 +78,7 @@ func (dp *dataPack) Unpack(binaryData []byte) (INetioData, error) {
 		return nil, err
 	}
 
-	if err := binary.Read(dataBuff, binary.LittleEndian, &msg.SessionId); err != nil {
+	if err := binary.Read(dataBuff, binary.LittleEndian, &msg.SessionID); err != nil {
 		return nil, err
 	}
 

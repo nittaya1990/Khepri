@@ -16,6 +16,7 @@
 package encode
 
 const (
+	//default header size
 	DefaultHeadLength = 17
 )
 
@@ -23,11 +24,12 @@ const (
 type NetioData struct {
 	Size      uint32 //data size not contain NetioData size
 	Encrypted bool   //encrypt flag
-	SessionId uint64 //session id
+	SessionID uint64 //session id
 	Reserved1 int32  //reserved, now this is a random int
 	Data      []byte //data
 }
 
+//INetioData netio data interface
 type INetioData interface {
 	getDataLen() uint32
 	IsEncrypted() bool
@@ -40,11 +42,12 @@ type INetioData interface {
 	setSessionId(uint64)
 }
 
-func NewNetioData(encrypted bool, sessionid uint64, data []byte) *NetioData {
+//NewNetioData return a NetioData object
+func NewNetioData(encrypted bool, sessionID uint64, data []byte) *NetioData {
 	return &NetioData{
 		Size:      uint32(len(data)),
 		Encrypted: encrypted,
-		SessionId: sessionid,
+		SessionID: sessionID,
 		Data:      data,
 	}
 }
@@ -53,14 +56,17 @@ func (msg *NetioData) getDataLen() uint32 {
 	return msg.Size
 }
 
+//IsEncrypted return msg is encrypt
 func (msg *NetioData) IsEncrypted() bool {
 	return msg.Encrypted
 }
 
+//GetSessionId return msg session id
 func (msg *NetioData) GetSessionId() uint64 {
-	return msg.SessionId
+	return msg.SessionID
 }
 
+//GetData return msg data
 func (msg *NetioData) GetData() []byte {
 	return msg.Data
 }
@@ -74,7 +80,7 @@ func (msg *NetioData) setEncrypted(encrypted bool) {
 }
 
 func (msg *NetioData) setSessionId(sessionid uint64) {
-	msg.SessionId = sessionid
+	msg.SessionID = sessionid
 }
 
 func (msg *NetioData) setData(data []byte) {

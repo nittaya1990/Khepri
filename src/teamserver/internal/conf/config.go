@@ -28,21 +28,24 @@ import (
 )
 
 const (
-	CmdReqTopic = "teamclient_req"
-	CmdRspTopic = "beacon_rsp"
+	CmdReqTopic = "teamclient_req" //teamclient msg queue topic name
+	CmdRspTopic = "beacon_rsp"     //beacon msg queue topic name
 )
 
+//ServerConf to save teamserver config info
 type ServerConf struct {
-	Dbname           string //default sqlite3 db file
-	BindHost         string //teamserver bind addr
-	RsaEncode        *crypto.RsaEncode
-	TeamclientSecret string //teamclient  connect password
-	PublicKeyFile    string //beacon rsa public key file
-	PrivateKeyFile   string //beacon rsa private key file
+	Dbname           string            //default sqlite3 db file
+	BindHost         string            //teamserver bind addr
+	RsaEncode        *crypto.RsaEncode //rsa
+	TeamclientSecret string            //teamclient  connect password
+	PublicKeyFile    string            //beacon rsa public key file
+	PrivateKeyFile   string            //beacon rsa private key file
 }
 
+//global teamserver config
 var GlobalConf *ServerConf
 
+//GetUserConf save teamserver config from cmdline to GlobalConf
 func (s *ServerConf) GetUserConf() (err error) {
 	flag.StringVar(&s.Dbname, "d", "khepri.db", "default sqlite3 db file, default:khepri.db")
 	flag.StringVar(&s.BindHost, "l", "0.0.0.0:50051", "teamserver listen at addr, default:0.0.0:50051")

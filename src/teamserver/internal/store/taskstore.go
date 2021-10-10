@@ -24,30 +24,32 @@ import (
 type TaskStatus int32
 
 const (
-	Status_Create   TaskStatus = 0
-	Status_Dispatch TaskStatus = 1
-	Status_Done     TaskStatus = 2
+	StatusCreate   TaskStatus = 0
+	StatusDispatch TaskStatus = 1
+	StatusDone     TaskStatus = 2
 )
 
+//TaskStore represents beacon task in database
 type TaskStore struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	TaskID    uint64 `gorm:"AUTO_INCREMENT;primary_key"`
-	MsgId     int32
-	BeaconId  string
-	ReqParam  []byte
-	RspParam  []byte
-	Status    TaskStatus
+	CreatedAt time.Time  //task create time
+	UpdatedAt time.Time  //task update time
+	TaskID    uint64     `gorm:"AUTO_INCREMENT;primary_key"` //taskid
+	MsgId     int32      //msgid
+	BeaconId  string     //beaconid
+	ReqParam  []byte     //request param data
+	RspParam  []byte     //resp  data
+	Status    TaskStatus //task status
 }
 
-func AddTask(msgid int32, beaconid string, reqparam []byte) (err error) {
+//AddTask add a task to database
+func AddTask(msgID int32, beaconID string, reqParam []byte) (err error) {
 	task := TaskStore{
-		MsgId:    msgid,
-		BeaconId: beaconid,
-		ReqParam: reqparam,
-		Status:   Status_Create,
+		MsgId:    msgID,
+		BeaconId: beaconID,
+		ReqParam: reqParam,
+		Status:   StatusCreate,
 	}
-	db := Instance()
+	db := instance()
 
 	db.AutoMigrate(&TaskStore{})
 
@@ -57,11 +59,12 @@ func AddTask(msgid int32, beaconid string, reqparam []byte) (err error) {
 	return
 }
 
-func GetTask(beaconid string) (data pb.TaskData, err error) {
+//GetTask return a task from database
+func GetTask(beaconID string) (data pb.TaskData, err error) {
 	task := TaskStore{}
-	db := Instance()
+	db := instance()
 
-	if db.Where("beacon_id = ? and status = ?", beaconid, Status_Create).First(&task).RecordNotFound() {
+	if db.Where("beacon_id = ? and status = ?", beaconID, StatusCreate).First(&task).RecordNotFound() {
 		err = errors.New("no task")
 		return
 	}
@@ -72,29 +75,31 @@ func GetTask(beaconid string) (data pb.TaskData, err error) {
 	data.TaskId = task.TaskID
 
 	db.Model(&task).Update(TaskStore{
-		Status: Status_Dispatch,
+		Status: StatusDispatch,
 	})
 	return
 }
 
-func UpdateTask(taskid uint64, rspparam []byte) (err error) {
+//UpdateTask update task in database
+func UpdateTask(taskID uint64, rspParam []byte) (err error) {
 	task := TaskStore{}
-	db := Instance()
+	db := instance()
 
-	if db.Where("task_id = ? and status = ?", taskid, Status_Dispatch).First(&task).RecordNotFound() {
+	if db.Where("task_id = ? and status = ?", taskID, StatusDispatch).First(&task).RecordNotFound() {
 		return
 	}
 
 	return db.Model(&task).Update(TaskStore{
-		RspParam: rspparam,
-		Status:   Status_Done,
+		RspParam: rspParam,
+		Status:   StatusDone,
 	}).Error
 }
 
-func GetTaskRspData(msgid int32) (rspDatas []TaskStore, err error) {
+//GetTaskRspData return resp data by msgid
+func GetTaskRspData(msgID int32) (rspData []TaskStore, err error) {
 
-	db := Instance()
-	query := db.Where("msg_id = ? and status = ?", msgid, Status_Done).Find(&rspDatas)
+	db := instance()
+	query := db.Where("msg_id = ? and status = ?", msgID, StatusDone).Find(&rspData)
 	if query.Error != nil {
 		err = query.Error
 		return
