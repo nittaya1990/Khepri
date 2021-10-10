@@ -28,8 +28,11 @@ import (
 )
 
 const (
-	CmdReqTopic = "teamclient_req" //teamclient msg queue topic name
-	CmdRspTopic = "beacon_rsp"     //beacon msg queue topic name
+	//CmdReqTopic teamclient msg queue topic name
+	CmdReqTopic = "teamclient_req"
+
+	//CmdRspTopic beacon msg queue topic name
+	CmdRspTopic = "beacon_rsp"
 )
 
 //ServerConf to save teamserver config info
@@ -42,7 +45,7 @@ type ServerConf struct {
 	PrivateKeyFile   string            //beacon rsa private key file
 }
 
-//global teamserver config
+//GlobalConf global teamserver config
 var GlobalConf *ServerConf
 
 //GetUserConf save teamserver config from cmdline to GlobalConf

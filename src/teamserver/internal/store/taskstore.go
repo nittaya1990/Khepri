@@ -21,12 +21,12 @@ import (
 	"time"
 )
 
-type TaskStatus int32
+type taskStatus int32
 
 const (
-	StatusCreate   TaskStatus = 0
-	StatusDispatch TaskStatus = 1
-	StatusDone     TaskStatus = 2
+	statusCreate   taskStatus = 0
+	statusDispatch taskStatus = 1
+	statusDone     taskStatus = 2
 )
 
 //TaskStore represents beacon task in database
@@ -38,7 +38,7 @@ type TaskStore struct {
 	BeaconId  string     //beaconid
 	ReqParam  []byte     //request param data
 	RspParam  []byte     //resp  data
-	Status    TaskStatus //task status
+	Status    taskStatus //task status
 }
 
 //AddTask add a task to database
@@ -47,7 +47,7 @@ func AddTask(msgID int32, beaconID string, reqParam []byte) (err error) {
 		MsgId:    msgID,
 		BeaconId: beaconID,
 		ReqParam: reqParam,
-		Status:   StatusCreate,
+		Status:   statusCreate,
 	}
 	db := instance()
 
@@ -64,7 +64,7 @@ func GetTask(beaconID string) (data pb.TaskData, err error) {
 	task := TaskStore{}
 	db := instance()
 
-	if db.Where("beacon_id = ? and status = ?", beaconID, StatusCreate).First(&task).RecordNotFound() {
+	if db.Where("beacon_id = ? and status = ?", beaconID, statusCreate).First(&task).RecordNotFound() {
 		err = errors.New("no task")
 		return
 	}
@@ -75,7 +75,7 @@ func GetTask(beaconID string) (data pb.TaskData, err error) {
 	data.TaskId = task.TaskID
 
 	db.Model(&task).Update(TaskStore{
-		Status: StatusDispatch,
+		Status: statusDispatch,
 	})
 	return
 }
@@ -85,13 +85,13 @@ func UpdateTask(taskID uint64, rspParam []byte) (err error) {
 	task := TaskStore{}
 	db := instance()
 
-	if db.Where("task_id = ? and status = ?", taskID, StatusDispatch).First(&task).RecordNotFound() {
+	if db.Where("task_id = ? and status = ?", taskID, statusDispatch).First(&task).RecordNotFound() {
 		return
 	}
 
 	return db.Model(&task).Update(TaskStore{
 		RspParam: rspParam,
-		Status:   StatusDone,
+		Status:   statusDone,
 	}).Error
 }
 
@@ -99,7 +99,7 @@ func UpdateTask(taskID uint64, rspParam []byte) (err error) {
 func GetTaskRspData(msgID int32) (rspData []TaskStore, err error) {
 
 	db := instance()
-	query := db.Where("msg_id = ? and status = ?", msgID, StatusDone).Find(&rspData)
+	query := db.Where("msg_id = ? and status = ?", msgID, statusDone).Find(&rspData)
 	if query.Error != nil {
 		err = query.Error
 		return

@@ -16,7 +16,7 @@
 package encode
 
 const (
-	//default header size
+	//DefaultHeadLength default header size
 	DefaultHeadLength = 17
 )
 

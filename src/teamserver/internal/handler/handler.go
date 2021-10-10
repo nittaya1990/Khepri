@@ -56,9 +56,9 @@ func (hm *MsgHandler) HandleMsg(msg []byte, c gnet.Conn, conntype pb.CONN_TYPE) 
 
 	if !netio.IsEncrypted() {
 		return hm.auth(netio, c, conntype)
-	} else {
-		return hm.msgdispatch(netio, conntype)
 	}
+
+	return hm.msgdispatch(netio, conntype)
 }
 
 //HandleClose handler disconnect
@@ -153,8 +153,8 @@ func (hm *MsgHandler) onReqPubKey(taskreq *pb.TaskData, c gnet.Conn, conntype pb
 }
 
 func (hm *MsgHandler) onReqAuth(sessionid uint64, taskreq *pb.TaskData, c gnet.Conn, conntype pb.CONN_TYPE) (rsp []byte, err error) {
-	enc_session_key := taskreq.GetByteValue()
-	key, err := conf.GlobalConf.RsaEncode.PrivateDecode(enc_session_key)
+	encSessionKey := taskreq.GetByteValue()
+	key, err := conf.GlobalConf.RsaEncode.PrivateDecode(encSessionKey)
 	if err != nil {
 		return
 	}
