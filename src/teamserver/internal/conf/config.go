@@ -40,7 +40,7 @@ type ServerConf struct {
 	Dbname           string            //default sqlite3 db file
 	BindHost         string            //teamserver bind addr
 	RsaEncode        *crypto.RsaEncode //rsa
-	TeamclientSecret string            //teamclient  connect password
+	TeamClientSecret string            //teamclient  connect password
 	PublicKeyFile    string            //beacon rsa public key file
 	PrivateKeyFile   string            //beacon rsa private key file
 }
@@ -52,14 +52,14 @@ var GlobalConf *ServerConf
 func (s *ServerConf) GetUserConf() (err error) {
 	flag.StringVar(&s.Dbname, "d", "khepri.db", "default sqlite3 db file, default:khepri.db")
 	flag.StringVar(&s.BindHost, "l", "0.0.0.0:50051", "teamserver listen at addr, default:0.0.0:50051")
-	flag.StringVar(&s.TeamclientSecret, "p", "", "teamclient connect password")
+	flag.StringVar(&s.TeamClientSecret, "p", "", "teamclient connect password")
 	flag.StringVar(&s.PublicKeyFile, "-pubkey", "publickey.pem", "beacon rsa public key file, default:publickey.pem")
 	flag.StringVar(&s.PrivateKeyFile, "-privatekey", "privatekey.pem", "beacon rsa private key file, default:privatekey.pem")
 
 	h := false
 	flag.BoolVar(&h, "h", false, "help usage")
 	flag.Parse()
-	if h || len(s.TeamclientSecret) == 0 {
+	if h || len(s.TeamClientSecret) == 0 {
 		flag.Usage()
 		return errors.New("param error")
 	}
@@ -82,29 +82,31 @@ func (s *ServerConf) genRsaKey(bits int, publicKeyFile string, privateKeyFile st
 		Type:  "RSA PRIVATE KEY",
 		Bytes: derStream,
 	}
-	file, err := os.Create(privateKeyFile)
+	private, err := os.Create(privateKeyFile)
+	defer private.Close()
 	if err != nil {
 		return
 	}
-	err = pem.Encode(file, block)
+	err = pem.Encode(private, block)
 	if err != nil {
 		return
 	}
 
 	publicKey := &privateKey.PublicKey
-	derPkix, err := x509.MarshalPKIXPublicKey(publicKey)
+	PKIX, err := x509.MarshalPKIXPublicKey(publicKey)
 	if err != nil {
 		return
 	}
 	block = &pem.Block{
 		Type:  "PUBLIC KEY",
-		Bytes: derPkix,
+		Bytes: PKIX,
 	}
-	file, err = os.Create(publicKeyFile)
+	public, err := os.Create(publicKeyFile)
+	defer public.Close()
 	if err != nil {
 		return
 	}
-	err = pem.Encode(file, block)
+	err = pem.Encode(public, block)
 	if err != nil {
 		return
 	}

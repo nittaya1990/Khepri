@@ -17,7 +17,7 @@ package client
 
 //TeamClient is a struct to save teamclient login info
 type TeamClient struct {
-	Username   string //teamclient username
+	UserName   string //teamclient username
 	ClientAddr string //teamclient ip addr
 	Token      string //teamclient login token
 }

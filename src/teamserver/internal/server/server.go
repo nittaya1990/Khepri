@@ -34,7 +34,7 @@ type beaconServer struct {
 	codec      gnet.ICodec
 	workerPool *goroutine.Pool
 	handler    *handler.MsgHandler
-	conntype   pb.CONN_TYPE
+	connType   pb.CONN_TYPE
 }
 
 func (cs *beaconServer) OnInitComplete(srv gnet.Server) (action gnet.Action) {
@@ -47,13 +47,13 @@ func (cs *beaconServer) React(frame []byte, c gnet.Conn) (out []byte, action gne
 
 	data := append([]byte{}, frame...)
 	_ = cs.workerPool.Submit(func() {
-		rsp, err := cs.handler.HandleMsg(data, c, cs.conntype)
+		rsp, err := cs.handler.HandleMsg(data, c, cs.connType)
 		if err != nil {
 			log.Print(err)
 			c.Close()
 			return
 		}
-		if cs.conntype == pb.CONN_TYPE_CONNNAME_TCP {
+		if cs.connType == pb.CONN_TYPE_CONNNAME_TCP {
 			c.AsyncWrite(rsp)
 		} else {
 			c.SendTo(rsp)
@@ -88,12 +88,12 @@ func newBeaconServer(addr string, multicore, async bool, codec gnet.ICodec, msgh
 		codec = gnet.NewLengthFieldBasedFrameCodec(encoderConfig, decoderConfig)
 	}
 
-	conntype := pb.CONN_TYPE_CONNNAME_TCP
+	connType := pb.CONN_TYPE_CONNNAME_TCP
 	if strings.EqualFold("udp", addr[:3]) {
-		conntype = pb.CONN_TYPE_CONNNAME_UDP
+		connType = pb.CONN_TYPE_CONNNAME_UDP
 	}
 
 	cs = &beaconServer{addr: addr, multicore: multicore, async: async,
-		codec: codec, workerPool: goroutine.Default(), handler: msghandler, conntype: conntype}
+		codec: codec, workerPool: goroutine.Default(), handler: msghandler, connType: connType}
 	return cs
 }

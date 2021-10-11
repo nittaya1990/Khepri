@@ -58,7 +58,7 @@ func (t *teamRPCService) Login(ctx context.Context, req *pb.LoginUserReq) (rsp *
 		return
 	}
 
-	if conf.GlobalConf.TeamclientSecret != req.Passwdhash {
+	if conf.GlobalConf.TeamClientSecret != req.Passwdhash {
 		err = errors.New("error password")
 		rsp.Error = err.Error()
 		return
@@ -74,7 +74,7 @@ func (t *teamRPCService) Login(ctx context.Context, req *pb.LoginUserReq) (rsp *
 	ip := peerctx.Addr.String()
 
 	client := &client.TeamClient{}
-	client.Username = req.Username
+	client.UserName = req.Username
 	client.ClientAddr = ip
 	client.Token = token
 

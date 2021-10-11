@@ -34,7 +34,7 @@ func (dp *dataPack) GetHeadLen() uint32 {
 }
 
 //Pack data into byte
-func (dp *dataPack) Pack(msg INetioData, conntype pb.CONN_TYPE) ([]byte, error) {
+func (dp *dataPack) Pack(msg INetIOData, conntype pb.CONN_TYPE) ([]byte, error) {
 
 	dataBuff := bytes.NewBuffer([]byte{})
 
@@ -65,10 +65,10 @@ func (dp *dataPack) Pack(msg INetioData, conntype pb.CONN_TYPE) ([]byte, error) 
 }
 
 //unpack data from byte
-func (dp *dataPack) Unpack(binaryData []byte) (INetioData, error) {
+func (dp *dataPack) Unpack(binaryData []byte) (INetIOData, error) {
 
 	dataBuff := bytes.NewReader(binaryData)
-	msg := &NetioData{}
+	msg := &NetIOData{}
 
 	if err := binary.Read(dataBuff, binary.BigEndian, &msg.Size); err != nil {
 		return nil, err

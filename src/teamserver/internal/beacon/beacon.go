@@ -22,7 +22,7 @@ import (
 
 // Beacon is a struct to save beacon client connected information
 type Beacon struct {
-	BeaconId   string       //unique identifier for beacon, created at beacon client by mac addr and connect type
+	ID         string       //unique identifier for beacon, created at beacon client by mac addr and connect type
 	SessionKey []byte       //communication key between beacon and teamserver
 	ConnType   pb.CONN_TYPE //connection type, tcp udp https
 	Conn       gnet.Conn    //unique identifier for gnet

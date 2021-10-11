@@ -20,17 +20,17 @@ const (
 	DefaultHeadLength = 17
 )
 
-//NetioData is a communication head struct between beacon and teamserver
-type NetioData struct {
-	Size      uint32 //data size not contain NetioData size
+//NetIOData is a communication head struct between beacon and teamserver
+type NetIOData struct {
+	Size      uint32 //data size not contain NetIOData size
 	Encrypted bool   //encrypt flag
 	SessionID uint64 //session id
 	Reserved1 int32  //reserved, now this is a random int
 	Data      []byte //data
 }
 
-//INetioData netio data interface
-type INetioData interface {
+//INetIOData netio data interface
+type INetIOData interface {
 	getDataLen() uint32
 	IsEncrypted() bool
 	GetData() []byte
@@ -42,9 +42,9 @@ type INetioData interface {
 	setSessionId(uint64)
 }
 
-//NewNetioData return a NetioData object
-func NewNetioData(encrypted bool, sessionID uint64, data []byte) *NetioData {
-	return &NetioData{
+//NewNetioData return a NetIOData object
+func NewNetioData(encrypted bool, sessionID uint64, data []byte) *NetIOData {
+	return &NetIOData{
 		Size:      uint32(len(data)),
 		Encrypted: encrypted,
 		SessionID: sessionID,
@@ -52,37 +52,37 @@ func NewNetioData(encrypted bool, sessionID uint64, data []byte) *NetioData {
 	}
 }
 
-func (msg *NetioData) getDataLen() uint32 {
+func (msg *NetIOData) getDataLen() uint32 {
 	return msg.Size
 }
 
 //IsEncrypted return msg is encrypt
-func (msg *NetioData) IsEncrypted() bool {
+func (msg *NetIOData) IsEncrypted() bool {
 	return msg.Encrypted
 }
 
 //GetSessionId return msg session id
-func (msg *NetioData) GetSessionId() uint64 {
+func (msg *NetIOData) GetSessionId() uint64 {
 	return msg.SessionID
 }
 
 //GetData return msg data
-func (msg *NetioData) GetData() []byte {
+func (msg *NetIOData) GetData() []byte {
 	return msg.Data
 }
 
-func (msg *NetioData) setDataLen(len uint32) {
+func (msg *NetIOData) setDataLen(len uint32) {
 	msg.Size = len
 }
 
-func (msg *NetioData) setEncrypted(encrypted bool) {
+func (msg *NetIOData) setEncrypted(encrypted bool) {
 	msg.Encrypted = encrypted
 }
 
-func (msg *NetioData) setSessionId(sessionid uint64) {
+func (msg *NetIOData) setSessionId(sessionid uint64) {
 	msg.SessionID = sessionid
 }
 
-func (msg *NetioData) setData(data []byte) {
+func (msg *NetIOData) setData(data []byte) {
 	msg.Data = data
 }
