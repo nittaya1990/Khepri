@@ -72,6 +72,9 @@ LPCSTR win::get_process_user(DWORD pid)
 	{
 		if (token_user != NULL)
 			free(token_user);
+
+		CloseHandle(token);
+		CloseHandle(process);
 	}
 	return username;
 }
