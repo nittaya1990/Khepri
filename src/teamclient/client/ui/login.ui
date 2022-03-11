@@ -14,11 +14,13 @@
    <string>Connect</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../res/client.qrc">
+   <iconset>
     <normaloff>:/logo/ico/log.ico</normaloff>:/logo/ico/log.ico</iconset>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: rgb(240, 243, 249);
+   <string notr="true">background-color: rgb(200, 200, 200);
+border-color: rgb(0, 0, 0);
+border:none;
 </string>
   </property>
   <property name="locale">
@@ -98,7 +100,7 @@
        <item>
         <widget class="QPushButton" name="connectBtn">
          <property name="styleSheet">
-          <string notr="true">background-color: rgb(181, 200, 220); </string>
+          <string notr="true">background-color: rgba(131, 131, 131,1);</string>
          </property>
          <property name="text">
           <string>Connect</string>
@@ -117,7 +119,7 @@
        <item>
         <widget class="QPushButton" name="helpBtn">
          <property name="styleSheet">
-          <string notr="true">background-color: rgb(181, 200, 220);</string>
+          <string notr="true">background-color: rgba(131, 131, 131,1);</string>
          </property>
          <property name="text">
           <string>Help</string>

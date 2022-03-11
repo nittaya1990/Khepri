@@ -507,6 +507,6 @@ void khepri::on_help_about(bool checked)
 
 void khepri::on_help_support(bool checked)
 {
-	QString github = "https://github.com/geemion/khepri";
+	QString github = "https://github.com/geemion/Khepri";
 	QDesktopServices::openUrl(QUrl(github.toLatin1()));
 }

@@ -5,12 +5,12 @@ https://github.com/asong2020/Golang_Dream/tree/master/code_demo/queue/mq
 package mq
 
 type Client struct {
-	bro *BrokerImpl
+	bro *brokerImpl
 }
 
 func NewClient() *Client {
 	return &Client{
-		bro: NewBroker(),
+		bro: newBroker(),
 	}
 }
 

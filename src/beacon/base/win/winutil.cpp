@@ -72,6 +72,9 @@ LPCSTR win::get_process_user(DWORD pid)
 	{
 		if (token_user != NULL)
 			free(token_user);
+
+		CloseHandle(token);
+		CloseHandle(process);
 	}
 	return username;
 }
@@ -199,11 +202,13 @@ bool win::is_wow64(DWORD pid)
 	return result;
 }
 
-bool win::is_x64(DWORD pid) {
+bool win::is_x64(DWORD pid)
+{
 	return os_is64() && !is_wow64(pid);
 }
 
-ULONGLONG win::tm_to_unix_tm(ULONGLONG win_tm) {
+ULONGLONG win::tm_to_unix_tm(ULONGLONG win_tm)
+{
 
 	const ULONGLONG WINDOWS_TICK = 10000000;
 	const ULONGLONG SEC_TO_UNIX_EPOCH = 11644473600LL;
@@ -231,17 +236,12 @@ bool win::execute_cmd(const std::string& cmd_line, const std::string& current_di
 	si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
 	si.wShowWindow = SW_HIDE;
 	si.hStdOutput = write_hd;
+	si.hStdError = write_hd;
 	std::string cmd = "cmd.exe /c " + cmd_line;
 	ret = CreateProcessA(NULL, (LPSTR)cmd.c_str(), NULL, NULL, TRUE, 0, NULL, current_dir.c_str(), &si, &pi);
 	CloseHandle(write_hd);
-	if (!ret) {
-		CloseHandle(read_hd);
-		return false;
-	}
-	if (WaitForSingleObject(pi.hProcess, time_out) == WAIT_TIMEOUT) {
-		TerminateProcess(pi.hProcess, 1);
-		CloseHandle(pi.hThread);
-		CloseHandle(pi.hProcess);
+	if (!ret)
+	{
 		CloseHandle(read_hd);
 		return false;
 	}
@@ -251,21 +251,23 @@ bool win::execute_cmd(const std::string& cmd_line, const std::string& current_di
 
 	bool result = false;
 	char* buffer = new(std::nothrow) char[block_size];
-	if (buffer == nullptr) {
+	if (buffer == nullptr)
+	{
 		CloseHandle(read_hd);
 		return false;
 	}
-	while (1) {
+
+	while (1)
+	{
 		DWORD read_len = 0;
-		if (ReadFile(read_hd, buffer, block_size, &read_len, NULL)) {
+		if (ReadFile(read_hd, buffer, block_size, &read_len, NULL))
+		{
 			out_put.append(buffer, read_len);
-			if (block_size > read_len) {
-				result = true;
-				break;
-			}
 		}
-		else {
-			if (GetLastError() == ERROR_BROKEN_PIPE) {
+		else
+		{
+			if (GetLastError() == ERROR_BROKEN_PIPE)
+			{
 				result = true;
 				break;
 			}
@@ -305,12 +307,12 @@ bool win::get_mac(std::string& mac)
 				continue;
 			char str[32];
 			sprintf(str, "%02X-%02X-%02X-%02X-%02X-%02X",
-                    uint8_t(adapter_ptr->Address[0]),
-                    uint8_t(adapter_ptr->Address[1]),
-                    uint8_t(adapter_ptr->Address[2]),
-                    uint8_t(adapter_ptr->Address[3]),
-                    uint8_t(adapter_ptr->Address[4]),
-                    uint8_t(adapter_ptr->Address[5]));
+				uint8_t(adapter_ptr->Address[0]),
+				uint8_t(adapter_ptr->Address[1]),
+				uint8_t(adapter_ptr->Address[2]),
+				uint8_t(adapter_ptr->Address[3]),
+				uint8_t(adapter_ptr->Address[4]),
+				uint8_t(adapter_ptr->Address[5]));
 			mac = str;
 			ret = true;
 			break;

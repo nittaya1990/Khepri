@@ -47,7 +47,10 @@ bool inx::get_mac(std::string &mac)
     ifc.ifc_len = sizeof(buf);
     ifc.ifc_buf = buf;
     if (ioctl(sock, SIOCGIFCONF, &ifc) == -1)
+    {
+        close(sock);
         return false;
+    }
 
     struct ifreq* it = ifc.ifc_req;
     const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
@@ -79,8 +82,10 @@ bool inx::get_mac(std::string &mac)
                 uint8_t(ifr.ifr_addr.sa_data[4]),
                 uint8_t(ifr.ifr_addr.sa_data[5]));
         mac = temp;
+        close(sock);
         return true;
     }
+    close(sock);
     return false;
 }
 #endif

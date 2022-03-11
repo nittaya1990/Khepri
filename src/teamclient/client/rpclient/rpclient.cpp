@@ -30,6 +30,9 @@ rpclient::rpclient(const std::string& url, const std::string& http_proxy) :fatal
 		channel_args.SetInt(GRPC_ARG_ENABLE_HTTP_PROXY, false);
 	}
 	channel_args.SetString(GRPC_ARG_HTTP_PROXY, http_proxy);
+
+	channel_args.SetInt(GRPC_ARG_MAX_RECEIVE_MESSAGE_LENGTH, 200 * 1024 * 1024);
+	channel_args.SetInt(GRPC_ARG_MAX_SEND_MESSAGE_LENGTH, 200 * 1024 * 1024);
 	auto channel = grpc::CreateCustomChannel(url, grpc::InsecureChannelCredentials(), channel_args);
 	stub_ = TeamRPCService::NewStub(channel);
 }

@@ -32,18 +32,21 @@ import (
 	"time"
 )
 
+//MsgHandler represents all beacons msg handler functions
 type MsgHandler struct {
-	Sessions sync.Map
-	cmdqueue *mq.Client
+	Session  sync.Map
+	cmdQueue *mq.Client
 }
 
+//NewMsgHandler return a msghandler
 func NewMsgHandler(mqclient *mq.Client) *MsgHandler {
-	handler := &MsgHandler{cmdqueue: mqclient}
+	handler := &MsgHandler{cmdQueue: mqclient}
 	go handler.pushTask()
 	return handler
 }
 
-func (hm *MsgHandler) HandleMsg(msg []byte, c gnet.Conn, conntype pb.CONN_TYPE) (msgrsp []byte, err error) {
+//HandleMsg handler beacon msg,return send data
+func (hm *MsgHandler) HandleMsg(msg []byte, c gnet.Conn, conntype pb.CONN_TYPE) (rsp []byte, err error) {
 
 	dp := encode.NewDataPack()
 	netio, err := dp.Unpack(msg)
@@ -53,17 +56,18 @@ func (hm *MsgHandler) HandleMsg(msg []byte, c gnet.Conn, conntype pb.CONN_TYPE) 
 
 	if !netio.IsEncrypted() {
 		return hm.auth(netio, c, conntype)
-	} else {
-		return hm.msgdispatch(netio, conntype)
 	}
+
+	return hm.msgdispatch(netio, conntype)
 }
 
+//HandleClose handler disconnect
 func (hm *MsgHandler) HandleClose(c gnet.Conn) {
-	sessionid := c.Context().(uint64)
-	hm.Sessions.Delete(sessionid)
+	sessionID := c.Context().(uint64)
+	hm.Session.Delete(sessionID)
 }
 
-func (hm *MsgHandler) auth(netio encode.INetioData, c gnet.Conn, conntype pb.CONN_TYPE) (msgrsp []byte, err error) {
+func (hm *MsgHandler) auth(netio encode.INetIOData, c gnet.Conn, connType pb.CONN_TYPE) (rsp []byte, err error) {
 	task := &pb.TaskData{}
 	err = proto.Unmarshal(netio.GetData(), task)
 	if err != nil {
@@ -71,149 +75,149 @@ func (hm *MsgHandler) auth(netio encode.INetioData, c gnet.Conn, conntype pb.CON
 	}
 	switch pb.MSGID(task.MsgId) {
 	case pb.MSGID_PUBKEY_REQ:
-		msgrsp, err = hm.onReqPubKey(task, c, conntype)
+		rsp, err = hm.onReqPubKey(task, c, connType)
 		return
 	case pb.MSGID_AUTH_REQ:
-		msgrsp, err = hm.onReqAuth(netio.GetSessionId(), task, c, conntype)
+		rsp, err = hm.onReqAuth(netio.GetSessionId(), task, c, connType)
 		return
 	default:
-		return msgrsp, errors.New("no msgid")
+		return rsp, errors.New("no msgid")
 	}
 }
 
-func (hm *MsgHandler) msgdispatch(netio encode.INetioData, conntype pb.CONN_TYPE) (msgrsp []byte, err error) {
-	sessionid := netio.GetSessionId()
-	beacon, ok := hm.Sessions.Load(sessionid)
+func (hm *MsgHandler) msgdispatch(netio encode.INetIOData, connType pb.CONN_TYPE) (rsp []byte, err error) {
+	sessionID := netio.GetSessionId()
+	beacon, ok := hm.Session.Load(sessionID)
 	if !ok {
-		return msgrsp, errors.New("no session id")
+		return rsp, errors.New("no session id")
 	}
-	sessionkey := beacon.(*bn.Beacon).SessionKey
-	taskdata, err := crypto.Xchacha20(sessionkey, netio.GetData())
+	sessionKey := beacon.(*bn.Beacon).SessionKey
+	taskData, err := crypto.Xchacha20(sessionKey, netio.GetData())
 	if err != nil {
-		return msgrsp, errors.New("error session key")
+		return rsp, errors.New("error session key")
 	}
 
 	task := &pb.TaskData{}
-	err = proto.Unmarshal(taskdata, task)
+	err = proto.Unmarshal(taskData, task)
 	if err != nil {
 		return
 	}
-	var taskrspdata []byte
+	var taskRspData []byte
 	switch pb.MSGID(task.MsgId) {
 	case pb.MSGID_HOST_INFO_RSP:
-		taskrspdata, err = hm.OnRspData(task)
+		taskRspData, err = hm.onRspData(task)
 		break
 	case pb.MSGID_HEAT_BEAT_REQ:
 		{
-			taskrspdata, err = hm.OnQuerytask(task)
+			taskRspData, err = hm.onQuerytask(task)
 
 			ipaddr := beacon.(*bn.Beacon).Conn.RemoteAddr()
 			hm.onUpdateBeacon(task, ipaddr.String())
 			break
 		}
 	default:
-		taskrspdata, err = hm.OnRspData(task)
+		taskRspData, err = hm.onRspData(task)
 		break
 	}
 
-	taskdataenc, err := crypto.Xchacha20(sessionkey, taskrspdata)
+	encTaskData, err := crypto.Xchacha20(sessionKey, taskRspData)
 	if err != nil {
 		return
 	}
 
 	dp := encode.NewDataPack()
-	msg := encode.NewNetioData(true, sessionid, taskdataenc)
-	msgrsp, _ = dp.Pack(msg, conntype)
+	msg := encode.NewNetioData(true, sessionID, encTaskData)
+	rsp, _ = dp.Pack(msg, connType)
 	return
 }
 
-func (hm *MsgHandler) onReqPubKey(taskreq *pb.TaskData, c gnet.Conn, conntype pb.CONN_TYPE) (rsp []byte, err error) {
+func (hm *MsgHandler) onReqPubKey(taskReq *pb.TaskData, c gnet.Conn, connType pb.CONN_TYPE) (rsp []byte, err error) {
 
-	authkey := &pb.AuthRsaKey{Pe: conf.GlobalConf.RsaEncode.E, Pn: conf.GlobalConf.RsaEncode.N}
-	authdata, _ := proto.Marshal(authkey)
+	authKey := &pb.AuthRsaKey{Pe: conf.GlobalConf.RsaEncode.E, Pn: conf.GlobalConf.RsaEncode.N}
+	authData, _ := proto.Marshal(authKey)
 
-	taskrsp := &pb.TaskData{MsgId: int32(pb.MSGID_PUBKEY_RSP), BeaconId: taskreq.BeaconId, TaskId: 123445, ByteValue: authdata}
-	taskdata, _ := proto.Marshal(taskrsp)
+	taskRsp := &pb.TaskData{MsgId: int32(pb.MSGID_PUBKEY_RSP), BeaconId: taskReq.BeaconId, TaskId: 123445, ByteValue: authData}
+	taskData, _ := proto.Marshal(taskRsp)
 
 	nano := time.Now().UnixNano()
 	rand.Seed(nano)
-	sessionid := rand.Uint64()
+	sessionID := rand.Uint64()
 
-	c.SetContext(sessionid)
+	c.SetContext(sessionID)
 
 	dp := encode.NewDataPack()
-	msg := encode.NewNetioData(false, sessionid, taskdata)
-	rsp, _ = dp.Pack(msg, conntype)
+	msg := encode.NewNetioData(false, sessionID, taskData)
+	rsp, _ = dp.Pack(msg, connType)
 
 	return rsp, nil
 }
 
-func (hm *MsgHandler) onReqAuth(sessionid uint64, taskreq *pb.TaskData, c gnet.Conn, conntype pb.CONN_TYPE) (rsp []byte, err error) {
-	enc_session_key := taskreq.GetByteValue()
-	key, err := conf.GlobalConf.RsaEncode.PrivateDecode(enc_session_key)
+func (hm *MsgHandler) onReqAuth(sessionID uint64, taskReq *pb.TaskData, c gnet.Conn, connType pb.CONN_TYPE) (rsp []byte, err error) {
+	encSessionKey := taskReq.GetByteValue()
+	key, err := conf.GlobalConf.RsaEncode.PrivateDecode(encSessionKey)
 	if err != nil {
 		return
 	}
-	beacon := &bn.Beacon{BeaconId: taskreq.BeaconId, SessionKey: key, ConnType: conntype, Conn: c}
-	hm.Sessions.Store(sessionid, beacon)
+	beacon := &bn.Beacon{ID: taskReq.BeaconId, SessionKey: key, ConnType: connType, Conn: c}
+	hm.Session.Store(sessionID, beacon)
 
-	taskrsp := &pb.TaskData{MsgId: int32(pb.MSGID_AUTH_RSP), BeaconId: taskreq.BeaconId, TaskId: 123445, ByteValue: nil}
-	taskdata, _ := proto.Marshal(taskrsp)
+	taskRsp := &pb.TaskData{MsgId: int32(pb.MSGID_AUTH_RSP), BeaconId: taskReq.BeaconId, TaskId: 123445, ByteValue: nil}
+	taskData, _ := proto.Marshal(taskRsp)
 
 	dp := encode.NewDataPack()
-	msg := encode.NewNetioData(false, sessionid, taskdata)
-	rsp, _ = dp.Pack(msg, conntype)
+	msg := encode.NewNetioData(false, sessionID, taskData)
+	rsp, _ = dp.Pack(msg, connType)
 	return
 }
 
 //todo: save rsp to db
-func (hm *MsgHandler) OnRspData(taskrsp *pb.TaskData) (rsp []byte, err error) {
-	teamclientrsp := pb.CommandRsp{
-		TaskId:    taskrsp.TaskId,
-		BeaconId:  taskrsp.BeaconId,
-		MsgId:     taskrsp.MsgId,
-		ByteValue: taskrsp.ByteValue,
+func (hm *MsgHandler) onRspData(taskRsp *pb.TaskData) (rsp []byte, err error) {
+	cmdRsp := pb.CommandRsp{
+		TaskId:    taskRsp.TaskId,
+		BeaconId:  taskRsp.BeaconId,
+		MsgId:     taskRsp.MsgId,
+		ByteValue: taskRsp.ByteValue,
 	}
-	hm.cmdqueue.Publish(conf.CmdRspTopic, teamclientrsp)
+	hm.cmdQueue.Publish(conf.CmdRspTopic, cmdRsp)
 	return
 }
 
 //todo:tcp push cmd
-func (hm *MsgHandler) OnQuerytask(taskrsp *pb.TaskData) (rsp []byte, err error) {
-	taskdata, err := store.GetTask(taskrsp.BeaconId)
+func (hm *MsgHandler) onQuerytask(taskRsp *pb.TaskData) (rsp []byte, err error) {
+	taskData, err := store.GetTask(taskRsp.BeaconId)
 	if err != nil {
 		return
 	}
-	rsp, err = proto.Marshal(&taskdata)
+	rsp, err = proto.Marshal(&taskData)
 	return
 }
 
-func (hm *MsgHandler) onUpdateBeacon(taskrsp *pb.TaskData, ipaddr string) {
-	store.UpdateBeacon(taskrsp.BeaconId, ipaddr, taskrsp.ByteValue)
+func (hm *MsgHandler) onUpdateBeacon(taskRsp *pb.TaskData, ipAddr string) {
+	store.UpdateBeacon(taskRsp.BeaconId, ipAddr, taskRsp.ByteValue)
 }
 
 func (hm *MsgHandler) pushTask() {
 
-	taskch, err := hm.cmdqueue.Subscribe(conf.CmdReqTopic)
+	taskCh, err := hm.cmdQueue.Subscribe(conf.CmdReqTopic)
 	if err != nil {
 		log.Print(err)
 		return
 	}
 
-	defer hm.cmdqueue.Unsubscribe(conf.CmdReqTopic, taskch)
+	defer hm.cmdQueue.Unsubscribe(conf.CmdReqTopic, taskCh)
 
 	for {
-		req, ok := (hm.cmdqueue.GetPayLoad(taskch)).(*pb.CommandReq)
+		req, ok := (hm.cmdQueue.GetPayLoad(taskCh)).(*pb.CommandReq)
 		if !ok {
 			continue
 		}
 
 		var beacon *bn.Beacon = nil
-		var sessionid uint64
-		hm.Sessions.Range(func(key, value interface{}) bool {
+		var sessionID uint64
+		hm.Session.Range(func(key, value interface{}) bool {
 			temp := value.(*bn.Beacon)
-			if temp.BeaconId == req.GetBeaconId() {
-				sessionid = key.(uint64)
+			if temp.ID == req.GetBeaconId() {
+				sessionID = key.(uint64)
 				beacon = temp
 				ok = true
 				return true
@@ -227,19 +231,19 @@ func (hm *MsgHandler) pushTask() {
 				return
 			}
 			data, err := proto.Marshal(&task)
-			taskdataenc, err := crypto.Xchacha20(beacon.SessionKey, data)
+			encTaskData, err := crypto.Xchacha20(beacon.SessionKey, data)
 			if err != nil {
 				return
 			}
 
 			dp := encode.NewDataPack()
-			msg := encode.NewNetioData(true, sessionid, taskdataenc)
-			msgrsp, _ := dp.Pack(msg, beacon.ConnType)
+			msg := encode.NewNetioData(true, sessionID, encTaskData)
+			msgRsp, _ := dp.Pack(msg, beacon.ConnType)
 
 			if beacon.ConnType == pb.CONN_TYPE_CONNNAME_TCP {
-				beacon.Conn.AsyncWrite(msgrsp)
+				beacon.Conn.AsyncWrite(msgRsp)
 			} else {
-				beacon.Conn.SendTo(msgrsp)
+				beacon.Conn.SendTo(msgRsp)
 			}
 		}
 	}

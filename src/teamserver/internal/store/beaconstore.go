@@ -22,7 +22,8 @@ import (
 	"time"
 )
 
-type BeaconStore struct {
+//beaconStore struct represents a beacon info to save beacon in database
+type beaconStore struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
@@ -31,41 +32,44 @@ type BeaconStore struct {
 	Detail    []byte
 }
 
+//UpdateBeacon update beacon info in database
 func UpdateBeacon(beaconId string, ipAddr string, detail []byte) (err error) {
-	beacon := BeaconStore{
+	beacon := beaconStore{
 		BeaconId: beaconId,
 		IpAddr:   ipAddr,
 		Detail:   detail,
 	}
 
-	db := Instance()
-	db.AutoMigrate(&BeaconStore{})
+	db := instance()
+	db.AutoMigrate(&beaconStore{})
 	if err = db.Create(&beacon).Error; err == nil {
 		return
 	}
 
-	beacon_old := BeaconStore{}
+	beaconOld := beaconStore{}
 
-	if db.First(&beacon_old, "beacon_id = ?", beaconId).RecordNotFound() {
+	if db.First(&beaconOld, "beacon_id = ?", beaconId).RecordNotFound() {
 		return errors.New("beacon id not found")
 	}
 
-	return db.Model(&beacon_old).Update(BeaconStore{
+	return db.Model(&beaconOld).Update(beaconStore{
 		IpAddr: ipAddr,
 		Detail: detail,
 	}).Error
 }
 
+//DeleteBeacon delete beacon info by beaconid, only modify the delete flag not delete
 func DeleteBeacon(beaconId string) (err error) {
 
-	db := Instance()
-	return db.Where("beacon_id = ?", beaconId).Delete(&BeaconStore{}).Error
+	db := instance()
+	return db.Where("beacon_id = ?", beaconId).Delete(&beaconStore{}).Error
 }
 
+//GetBeacons return all beacons info in database
 func GetBeacons() (beaconsData []byte, err error) {
-	var beacon []BeaconStore
+	var beacon []beaconStore
 
-	db := Instance()
+	db := instance()
 	query := db.Find(&beacon)
 	if query.Error != nil {
 		err = query.Error

@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type Broker interface {
+type broker interface {
 	publish(topic string, msg interface{}) error
 	subscribe(topic string) (<-chan interface{}, error)
 	unsubscribe(topic string, sub <-chan interface{}) error
@@ -19,7 +19,7 @@ type Broker interface {
 	setConditions(capacity int)
 }
 
-type BrokerImpl struct {
+type brokerImpl struct {
 	exit     chan bool
 	capacity int
 
@@ -27,18 +27,18 @@ type BrokerImpl struct {
 	sync.RWMutex
 }
 
-func NewBroker() *BrokerImpl {
-	return &BrokerImpl{
+func newBroker() *brokerImpl {
+	return &brokerImpl{
 		exit:   make(chan bool),
 		topics: make(map[string][]chan interface{}),
 	}
 }
 
-func (b *BrokerImpl) setConditions(capacity int) {
+func (b *brokerImpl) setConditions(capacity int) {
 	b.capacity = capacity
 }
 
-func (b *BrokerImpl) close() {
+func (b *brokerImpl) close() {
 	select {
 	case <-b.exit:
 		return
@@ -51,7 +51,7 @@ func (b *BrokerImpl) close() {
 	return
 }
 
-func (b *BrokerImpl) publish(topic string, pub interface{}) error {
+func (b *brokerImpl) publish(topic string, pub interface{}) error {
 	select {
 	case <-b.exit:
 		return errors.New("broker closed")
@@ -69,7 +69,7 @@ func (b *BrokerImpl) publish(topic string, pub interface{}) error {
 	return nil
 }
 
-func (b *BrokerImpl) broadcast(msg interface{}, subscribers []chan interface{}) {
+func (b *brokerImpl) broadcast(msg interface{}, subscribers []chan interface{}) {
 	count := len(subscribers)
 	concurrency := 1
 
@@ -107,7 +107,7 @@ func (b *BrokerImpl) broadcast(msg interface{}, subscribers []chan interface{}) 
 	}
 }
 
-func (b *BrokerImpl) subscribe(topic string) (<-chan interface{}, error) {
+func (b *brokerImpl) subscribe(topic string) (<-chan interface{}, error) {
 	select {
 	case <-b.exit:
 		return nil, errors.New("broker closed")
@@ -121,7 +121,7 @@ func (b *BrokerImpl) subscribe(topic string) (<-chan interface{}, error) {
 	return ch, nil
 }
 
-func (b *BrokerImpl) unsubscribe(topic string, sub <-chan interface{}) error {
+func (b *brokerImpl) unsubscribe(topic string, sub <-chan interface{}) error {
 	select {
 	case <-b.exit:
 		return errors.New("broker closed")

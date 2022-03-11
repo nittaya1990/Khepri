@@ -26,16 +26,18 @@ import (
 	pb "teamserver/internal/proto/protobuf"
 )
 
+//ServerMgr is a struct to save servers info, it's a map
 type ServerMgr struct {
-	serverInfo sync.Map
+	serverInfo sync.Map //key is a server name, value is server addr
 }
 
+//StartServer is to start a server
 func (s *ServerMgr) StartServer(name string, addr string, msghandler *handler.MsgHandler) (err error) {
 	if s.isRunningServer(name) {
 		return errors.New("Duplicate listener name")
 	}
 	go func() {
-		server := NewBeaconServer(addr, false, false, nil, msghandler)
+		server := newBeaconServer(addr, false, false, nil, msghandler)
 		err = server.Run()
 		if err != nil {
 			log.Print(err)
@@ -47,6 +49,7 @@ func (s *ServerMgr) StartServer(name string, addr string, msghandler *handler.Ms
 	return nil
 }
 
+//StopServer is to stop a server
 func (s *ServerMgr) StopServer(name string) (err error) {
 	addr, ok := s.serverInfo.Load(name)
 	if !ok {
@@ -56,6 +59,7 @@ func (s *ServerMgr) StopServer(name string) (err error) {
 	return gnet.Stop(context.TODO(), addr.(string))
 }
 
+//GetRunningServer return all running server info
 func (s *ServerMgr) GetRunningServer() (data []byte, err error) {
 	info := &pb.ServerInfo{}
 
@@ -73,11 +77,12 @@ func (s *ServerMgr) GetRunningServer() (data []byte, err error) {
 	return
 }
 
+//isRunningServer return server run status by name
 func (s *ServerMgr) isRunningServer(name string) bool {
 	running := false
 	s.serverInfo.Range(func(key, value interface{}) bool {
-		temp_name := key.(string)
-		if temp_name == name {
+		tempName := key.(string)
+		if tempName == name {
 			running = true
 			return false
 		}
